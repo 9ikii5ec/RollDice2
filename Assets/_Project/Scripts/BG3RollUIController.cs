@@ -2,184 +2,306 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using DG.Tweening; // Подключаем DOTween
+using DG.Tweening;
 
 public class BG3RollUIController : MonoBehaviour
 {
     [Header("UI Elements")]
-    [SerializeField] private TextMeshProUGUI difficultyClassText; // Текст сложности (например "10")
-    [SerializeField] private CanvasGroup rollPromptGroup;       // Кнопка/подсказка "Click dice to roll"
-    [SerializeField] private CanvasGroup modifierCardGroup;     // Карточка модификатора снизу (+1 Intelligence)
-    [SerializeField] private TextMeshProUGUI modifierFlyText;  // Летающий текст бонуса ("+1")
-    [SerializeField] private CanvasGroup resultBannerGroup;    // Плашка результата (SUCCESS / FAILURE)
-    [SerializeField] private TextMeshProUGUI resultBannerText; // Текст на плашке
-    [SerializeField] private CanvasGroup continueButtonGroup;   // Кнопка "Continue"
+    [SerializeField] private TextMeshProUGUI difficultyClassText;
+    [SerializeField] private CanvasGroup rollPromptGroup;
+    [SerializeField] private CanvasGroup rollButtonGroup;
+    [SerializeField] private CanvasGroup modifierCardGroup;
+    [SerializeField] private TextMeshProUGUI modifierFlyText;
+    [SerializeField] private CanvasGroup resultBannerGroup;
+    [SerializeField] private TextMeshProUGUI resultBannerText;
+    [SerializeField] private CanvasGroup continueButtonGroup;
     [SerializeField] private Button continueButton;
 
     [Header("Animation Positions")]
-    [SerializeField] private RectTransform flyTextStartPoint; // Начальная позиция летающего текста (у плашки модификатора)
-    [SerializeField] private RectTransform flyTextEndPoint;   // Конечная позиция летающего текста (у кубика)
+    [SerializeField] private RectTransform flyTextStartPoint;
+    [SerializeField] private RectTransform flyTextEndPoint;
+
+    [Header("Config")]
+    [SerializeField] private RollUIConfig config = new RollUIConfig();
 
     [Header("Audio (Optional)")]
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip modifierFlySound;      // Звук вылета бонуса
-    [SerializeField] private AudioClip successSound;          // Звук победы
-    [SerializeField] private AudioClip failureSound;          // Звук поражения
+    [SerializeField] private AudioClip modifierFlySound;
+    [SerializeField] private AudioClip successSound;
+    [SerializeField] private AudioClip failureSound;
 
     [Header("Particles (Optional)")]
     [SerializeField] private ParticleSystem successParticles;
 
-    // Ссылка на контроллер броска кубика
     [SerializeField] private BG3DiceParentController diceController;
+
+    [Header("Dice Pulse")]
+    [SerializeField] private Transform diceTransform;
+    [SerializeField] private Renderer shineRenderer;
+
+    private RectTransform modifierCardRect;
+    private RectTransform rollPromptRect;
 
     private void Awake()
     {
-        ResetUI();
+        if (modifierCardGroup != null)
+            modifierCardRect = modifierCardGroup.GetComponent<RectTransform>();
+        if (rollPromptGroup != null)
+            rollPromptRect = rollPromptGroup.GetComponent<RectTransform>();
+
+        HideAll();
+    }
+
+    private void Start()
+    {
+        StartCoroutine(IntroAnimation());
     }
 
     private void OnDestroy()
     {
-        // Убиваем все активные твины этого объекта при уничтожении, чтобы не было ошибок
         DOTween.Kill(this);
     }
 
-    /// <summary>
-    /// Сброс интерфейса в начальное состояние перед броском
-    /// </summary>
-    public void ResetUI()
+    private void HideAll()
     {
-        // Останавливаем все запущенные твины UI
-        DOTween.Kill(this);
-
-        SetGroupAlpha(rollPromptGroup, 1f, true);
-        SetGroupAlpha(modifierCardGroup, 0f, false);
-        SetGroupAlpha(resultBannerGroup, 0f, false);
-        SetGroupAlpha(continueButtonGroup, 0f, false);
-
+        SetAlpha(rollPromptGroup, 0f);
+        SetAlpha(rollButtonGroup, 0f);
+        SetAlpha(modifierCardGroup, 0f);
+        SetAlpha(resultBannerGroup, 0f);
+        SetAlpha(continueButtonGroup, 0f);
         if (modifierFlyText != null)
-            modifierFlyText.gameObject.SetActive(false);
+            modifierFlyText.alpha = 0f;
     }
 
-    /// <summary>
-    /// Вызывается при клике по кубику или старту броска
-    /// </summary>
+    private IEnumerator IntroAnimation()
+    {
+        yield return new WaitForSeconds(config.introStartDelay);
+
+        // 1. Modifier card: СЃРЅРёР·Сѓ РІРІРµСЂС… + fade
+        if (modifierCardGroup != null && modifierCardRect != null)
+        {
+            modifierCardGroup.alpha = 0f;
+            Vector2 finalPos = modifierCardRect.anchoredPosition;
+            modifierCardRect.anchoredPosition = new Vector2(finalPos.x, finalPos.y - config.modifierSlideOffset);
+
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(modifierCardRect.DOAnchorPosY(finalPos.y, config.modifierSlideDuration).SetEase(Ease.OutCubic));
+            seq.Join(modifierCardGroup.DOFade(1f, config.modifierFadeDuration));
+            yield return seq.WaitForCompletion();
+
+            modifierCardGroup.interactable = true;
+            modifierCardGroup.blocksRaycasts = true;
+        }
+
+        yield return new WaitForSeconds(config.introBetweenDelay);
+
+        // 2. Roll button: fade
+        if (rollButtonGroup != null)
+        {
+            rollButtonGroup.alpha = 0f;
+            yield return rollButtonGroup.DOFade(1f, config.rollButtonFadeDuration).SetTarget(this).WaitForCompletion();
+            rollButtonGroup.interactable = true;
+            rollButtonGroup.blocksRaycasts = true;
+        }
+
+        yield return new WaitForSeconds(config.introBetweenDelay);
+
+        // 3. Roll prompt: СЃРІРµСЂС…Сѓ РІРЅРёР· + fade
+        if (rollPromptGroup != null && rollPromptRect != null)
+        {
+            rollPromptGroup.alpha = 0f;
+            Vector2 finalPos = rollPromptRect.anchoredPosition;
+            rollPromptRect.anchoredPosition = new Vector2(finalPos.x, finalPos.y + config.rollPromptSlideOffset);
+
+            Sequence seq = DOTween.Sequence().SetTarget(this);
+            seq.Append(rollPromptRect.DOAnchorPosY(finalPos.y, config.rollPromptSlideDuration).SetEase(Ease.OutCubic));
+            seq.Join(rollPromptGroup.DOFade(1f, config.rollPromptFadeDuration));
+            yield return seq.WaitForCompletion();
+
+            rollPromptGroup.interactable = true;
+            rollPromptGroup.blocksRaycasts = true;
+        }
+
+        yield return new WaitForSeconds(config.introBetweenDelay);
+
+        //// 4. Difficulty text: fade
+        //if (difficultyClassText != null)
+        //{
+        //    difficultyClassText.alpha = 0f;
+        //    yield return difficultyClassText.DOFade(1f, config.dcTextFadeDuration).SetTarget(this).WaitForCompletion();
+        //}
+
+        // 5. РџСѓР»СЊСЃ РєСѓР±РёРєР° Г—2
+        if (diceTransform != null)
+        {
+            yield return new WaitForSeconds(config.dicePunchStartDelay);
+
+            Vector3 originalScale = diceTransform.localScale;
+            Vector3 midScale = originalScale * config.dicePunchMidScale;
+
+            Sequence pulse1 = DOTween.Sequence().SetTarget(this);
+            pulse1.Append(diceTransform.DOScale(originalScale * config.dicePunchScale1, config.dicePunchDuration1 / 2f).SetEase(Ease.OutBack));
+            pulse1.Append(diceTransform.DOScale(midScale, config.dicePunchDuration1 / 2f).SetEase(Ease.OutBack));
+            yield return pulse1.WaitForCompletion();
+
+            yield return new WaitForSeconds(config.dicePunchDelay);
+
+            Sequence pulse2 = DOTween.Sequence().SetTarget(this);
+            pulse2.Append(diceTransform.DOScale(originalScale * config.dicePunchScale2, config.dicePunchDuration2 / 2f).SetEase(Ease.OutBack));
+            pulse2.Append(diceTransform.DOScale(originalScale, config.dicePunchDuration2 / 2f).SetEase(Ease.OutBack));
+            yield return pulse2.WaitForCompletion();
+
+            if (shineRenderer != null)
+            {
+                MaterialPropertyBlock mpb = new MaterialPropertyBlock();
+                shineRenderer.GetPropertyBlock(mpb);
+                mpb.SetFloat("_ShinePosition", 3f);
+                shineRenderer.SetPropertyBlock(mpb);
+                shineRenderer.gameObject.SetActive(true);
+
+                float val = 3f;
+                yield return DOTween.To(
+                    () => val,
+                    x =>
+                    {
+                        val = x;
+                        mpb.SetFloat("_ShinePosition", val);
+                        shineRenderer.SetPropertyBlock(mpb);
+                    },
+                    -1f,
+                    config.diceShineDuration
+                )
+                .SetEase(Ease.Linear)
+                .SetTarget(this);
+            }
+        }
+    }
+
     public void StartRollSequence(int rawDiceResult, int modifierValue, int difficultyClass)
     {
+        StopAllCoroutines();
+        if (shineRenderer != null)
+            shineRenderer.gameObject.SetActive(false);
         StartCoroutine(RollSequenceCoroutine(rawDiceResult, modifierValue, difficultyClass));
     }
 
     private IEnumerator RollSequenceCoroutine(int rawDiceResult, int modifierValue, int difficultyClass)
     {
-        // 1. Скрываем подсказку "Click dice to roll"
+        DOTween.Kill(this);
+
+        if (difficultyClassText != null)
+            difficultyClassText.alpha = 1f;
+
         if (rollPromptGroup != null)
         {
             rollPromptGroup.interactable = false;
             rollPromptGroup.blocksRaycasts = false;
-            yield return rollPromptGroup.DOFade(0f, 0.2f).SetTarget(this).WaitForCompletion();
-            rollPromptGroup.gameObject.SetActive(false);
         }
 
-        // 2. Включаем плашку модификатора снизу
+        if (rollButtonGroup != null)
+        {
+            rollButtonGroup.interactable = false;
+            rollButtonGroup.blocksRaycasts = false;
+            rollButtonGroup.alpha = 0f;
+        }
+
+        // 2. РџРѕСЏРІР»РµРЅРёРµ РјРѕРґРёС„РёРєР°С‚РѕСЂР° (Р±РµР· РјРёРіР°РЅРёСЏ РµСЃР»Рё СѓР¶Рµ РІРёРґРµРЅ)
         if (modifierCardGroup != null)
         {
-            modifierCardGroup.gameObject.SetActive(true);
-            yield return modifierCardGroup.DOFade(1f, 0.4f).SetTarget(this).WaitForCompletion();
+            if (modifierCardGroup.alpha < 1f)
+            {
+                modifierCardGroup.alpha = 0f;
+                yield return modifierCardGroup.DOFade(1f, config.modifierFadeInDuration).SetTarget(this).WaitForCompletion();
+            }
             modifierCardGroup.interactable = true;
             modifierCardGroup.blocksRaycasts = true;
         }
 
-        // 3. Запускаем бросок самого кубика D20
+        // 3. Р‘СЂРѕСЃРѕРє РєСѓР±РёРєР°
         if (diceController != null)
         {
-            // Бросаем кубик на базовое значение (без учета модификатора)
             diceController.RollDice(rawDiceResult);
-
-            // Ждем, пока кубик докрутится и остановится
             while (diceController.IsRolling)
-            {
                 yield return null;
-            }
         }
         else
         {
-            yield return new WaitForSeconds(1.5f); // Эмуляция паузы, если кубик не привязан
+            yield return new WaitForSeconds(1.5f);
         }
 
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(config.postRollDelay);
 
-        // 4. Анимация полета бонуса (+1) от карточки к кубику через DOTween Sequence
+        // 4. Р›РµС‚Р°СЋС‰РёР№ С‚РµРєСЃС‚ РјРѕРґРёС„РёРєР°С‚РѕСЂР°
         if (modifierValue != 0 && modifierFlyText != null && flyTextStartPoint != null && flyTextEndPoint != null)
         {
             modifierFlyText.text = (modifierValue > 0 ? "+" : "") + modifierValue.ToString();
             modifierFlyText.transform.position = flyTextStartPoint.position;
-            modifierFlyText.alpha = 0f;
-            modifierFlyText.gameObject.SetActive(true);
+            modifierFlyText.alpha = 1f;
+            modifierFlyText.transform.localScale = Vector3.one;
 
-            if (audioSource && modifierFlySound) audioSource.PlayOneShot(modifierFlySound);
-
-            // Создаем цепочку анимаций полёта
             Sequence flySeq = DOTween.Sequence().SetTarget(this);
-
-            // Плавное перемещение к кубику с эффектом ускорения/замедления
-            flySeq.Join(modifierFlyText.transform.DOMove(flyTextEndPoint.position, 0.6f).SetEase(Ease.InOutQuad));
-
-            // Появление в начале и растворение в конце полета
-            flySeq.Join(modifierFlyText.DOFade(1f, 0.2f));
-            flySeq.Insert(0.4f, modifierFlyText.DOFade(0f, 0.2f));
-
+            flySeq.Append(modifierFlyText.transform.DOScale(1.3f, 0.2f).SetEase(Ease.OutBack));
+            flySeq.Join(modifierFlyText.transform.DOMove(flyTextEndPoint.position, config.flyTextMoveDuration).SetEase(Ease.InOutQuad));
             yield return flySeq.WaitForCompletion();
 
-            modifierFlyText.gameObject.SetActive(false);
+            modifierFlyText.alpha = 0f;
         }
 
-        // 5. Вычисляем итоговый результат
+        // 5. РљСѓР±РёРє РјРіРЅРѕРІРµРЅРЅРѕ РїРѕРІРѕСЂР°С‡РёРІР°РµС‚СЃСЏ РЅР° РёС‚РѕРіРѕРІРѕРµ С‡РёСЃР»Рѕ + РїСѓР»СЊСЃ
         int totalResult = rawDiceResult + modifierValue;
+        if (diceController != null)
+            diceController.SnapToFace(totalResult);
+
+        if (diceTransform != null)
+        {
+            Vector3 originalScale = diceTransform.localScale;
+            Sequence rollPunch = DOTween.Sequence().SetTarget(this);
+            rollPunch.Append(diceTransform.DOScale(originalScale * 1.15f, 0.15f).SetEase(Ease.OutBack));
+            rollPunch.Append(diceTransform.DOScale(originalScale, 0.15f).SetEase(Ease.OutBack));
+            yield return rollPunch.WaitForCompletion();
+        }
+
+        // 6. РњРѕРґРёС„РёРєР°С‚РѕСЂ РЅР°РїРѕР»РѕРІРёРЅСѓ СЃРєСЂС‹РІР°РµС‚СЃСЏ
+        if (modifierCardGroup != null)
+            yield return modifierCardGroup.DOFade(0.5f, 0.2f).SetTarget(this).WaitForCompletion();
+
         bool isSuccess = totalResult >= difficultyClass;
 
-        // 6. Появление баннера SUCCESS / FAILURE
         if (resultBannerText != null)
         {
             resultBannerText.text = isSuccess ? "SUCCESS" : "FAILURE";
             resultBannerText.color = isSuccess ? new Color(0.9f, 0.8f, 0.4f) : new Color(0.9f, 0.3f, 0.3f);
         }
 
-        if (isSuccess)
-        {
-            if (audioSource && successSound) audioSource.PlayOneShot(successSound);
-            if (successParticles) successParticles.Play();
-        }
-        else
-        {
-            if (audioSource && failureSound) audioSource.PlayOneShot(failureSound);
-        }
-
         if (resultBannerGroup != null)
         {
-            resultBannerGroup.gameObject.SetActive(true);
-            yield return resultBannerGroup.DOFade(1f, 0.3f).SetTarget(this).WaitForCompletion();
+            resultBannerGroup.alpha = 0f;
+            yield return resultBannerGroup.DOFade(1f, config.bannerFadeDuration).SetTarget(this).WaitForCompletion();
             resultBannerGroup.interactable = true;
             resultBannerGroup.blocksRaycasts = true;
         }
 
-        yield return new WaitForSeconds(0.4f);
+        // 7. РњРѕРґРёС„РёРєР°С‚РѕСЂ РїРѕР»РЅРѕСЃС‚СЊСЋ СЃРєСЂС‹РІР°РµС‚СЃСЏ
+        if (modifierCardGroup != null)
+            yield return modifierCardGroup.DOFade(0f, 0.2f).SetTarget(this).WaitForCompletion();
 
-        // 7. Появление кнопки "Continue"
+        yield return new WaitForSeconds(config.bannerPostDelay);
+
+        // 6. РљРЅРѕРїРєР° Continue
         if (continueButtonGroup != null)
         {
-            continueButtonGroup.gameObject.SetActive(true);
-            yield return continueButtonGroup.DOFade(1f, 0.4f).SetTarget(this).WaitForCompletion();
-            continueButtonGroup.interactable = true;
-            continueButtonGroup.blocksRaycasts = true;
+            continueButtonGroup.alpha = 0f;
+            if (continueButton != null) continueButton.interactable = false;
+            yield return continueButtonGroup.DOFade(1f, config.continueFadeDuration).SetTarget(this).WaitForCompletion();
+            if (continueButton != null) continueButton.interactable = true;
         }
     }
 
-    // --- Вспомогательный метод установки параметров CanvasGroup ---
-    private void SetGroupAlpha(CanvasGroup group, float alpha, bool interactable)
+    private void SetAlpha(CanvasGroup group, float alpha)
     {
         if (group == null) return;
         group.alpha = alpha;
-        group.interactable = interactable;
-        group.blocksRaycasts = interactable;
-        group.gameObject.SetActive(alpha > 0f);
+        group.interactable = false;
+        group.blocksRaycasts = false;
     }
 }

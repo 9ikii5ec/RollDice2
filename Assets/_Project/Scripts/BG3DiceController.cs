@@ -4,48 +4,50 @@ using UnityEngine.SceneManagement;
 
 public class BG3DiceParentController : MonoBehaviour
 {
-    [Header("Иерархия")]
+    [Header("РћР±СЉРµРєС‚С‹")]
     [SerializeField] private Transform diceMesh;
     [SerializeField] private Renderer diceRenderer;
     [SerializeField] private Transform[] faceTransforms = new Transform[20];
 
-    [Header("Камера и Эффекты")]
+    [Header("РљР°РјРµСЂР° Рё СЌС„С„РµРєС‚С‹")]
     [SerializeField] private Camera targetCamera;
     [SerializeField] private ParticleSystem impactParticles;
-    public AudioSource audioSource;
+    [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip spinSound;
-    [SerializeField] private AudioClip bounceSound;
     [SerializeField] private AudioClip impactSound;
 
-    [Header("Настройки Шейдера / Смазывания (Blur)")]
-    [Tooltip("Имя свойства размытия в вашем шейдере (если используется Shader Graph)")]
+    [Header("РќР°СЃС‚СЂРѕР№РєРё СЂР°Р·РјС‹С‚РёСЏ (Blur)")]
+    [Tooltip("РРјСЏ СЃРІРѕР№СЃС‚РІР° С€РµР№РґРµСЂР° РґР»СЏ СЂР°Р·РјС‹С‚РёСЏ (РѕР±С‹С‡РЅРѕ Р·Р°РґР°С‘С‚СЃСЏ РІ Shader Graph)")]
     [SerializeField] private string shaderBlurProperty = "_BlurAmount";
-    [Tooltip("Максимальная сила размытия при быстром вращении")]
+    [Tooltip("РњР°РєСЃРёРјР°Р»СЊРЅРѕРµ Р·РЅР°С‡РµРЅРёРµ СЂР°Р·РјС‹С‚РёСЏ РїСЂРё РІСЂР°С‰РµРЅРёРё")]
     [SerializeField] private float maxBlurAmount = 1.0f;
 
-    [Header("Опционально: Альтернативный Материал для вращения")]
-    [Tooltip("Если хотите использовать отдельный смазанный материал/текстуру во время вращения")]
+    [Header("РњР°С‚РµСЂРёР°Р»С‹: РїРµСЂРµРєР»СЋС‡РµРЅРёРµ РјРµР¶РґСѓ РЅРѕСЂРјР°Р»СЊРЅС‹Рј Рё СЂР°Р·РјС‹С‚РёРµРј")]
+    [Tooltip("РџСЂРё Р·Р°РІРµСЂС€РµРЅРёРё РєСѓР±РёРє РїРµСЂРµРєР»СЋС‡Р°РµС‚СЃСЏ РјРµР¶РґСѓ РЅРѕСЂРјР°Р»СЊРЅС‹Рј/СЂР°Р·РјС‹С‚РёРµРј РЅР° СЌС‚РѕС‚ РјР°С‚РµСЂРёР°Р»")]
     [SerializeField] private Material normalMaterial;
     [SerializeField] private Material blurMaterial;
 
-    [Header("Границы перемещения (Плоскость XZ)")]
+    [Header("Р“СЂР°РЅРёС†С‹ РїРµСЂРµРјРµС‰РµРЅРёСЏ (РіСЂР°РЅРёС†С‹ XZ)")]
     [SerializeField] private Vector2 minBounds = new Vector2(-4f, -4f);
     [SerializeField] private Vector2 maxBounds = new Vector2(4f, 4f);
 
-    [Header("Настройки Броска")]
+    [Header("РќР°СЃС‚СЂРѕР№РєРё Р±СЂРѕСЃРєР°")]
     [SerializeField] private float rollDuration = 2.0f;
     [SerializeField] private float initialMoveSpeed = 10f;
     [SerializeField] private float rotationSpeed = 1500f;
     public bool IsRolling => isRolling;
 
-    [Tooltip("Время возврата кубика в центр экрана (в секундах)")]
+    [Tooltip("Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РІРѕР·РІСЂР°С‚Р° Рє РЅР°С‡Р°Р»СЊРЅРѕР№ РїРѕР·РёС†РёРё (РІ СЃРµРєСѓРЅРґР°С…)")]
     [SerializeField] private float returnDuration = 0.5f;
-    [Tooltip("Время фиксации грани (чем меньше, тем резче защелкивается число)")]
+    [Tooltip("Р”Р»РёС‚РµР»СЊРЅРѕСЃС‚СЊ РїСЂРёРІСЏР·РєРё (РґР»СЏ С‚РѕС‡РЅРѕСЃС‚Рё, С‡С‚РѕР±С‹ РєСѓР±РёРє РЅРµ РїСЂРѕРґРѕР»Р¶Р°Р» РєСЂСѓС‚РёС‚СЊСЃСЏ)")]
     [SerializeField] private float snapDuration = 0.15f;
 
-    [Header("Визуализация Границ (Gizmos)")]
+    [Header("Р’РёР·СѓР°Р»РёР·Р°С†РёСЏ РіСЂР°РЅРёС† (Gizmos)")]
     [SerializeField] private bool showGizmos = true;
     [SerializeField] private Color gizmoColor = new Color(0f, 1f, 0.4f, 0.8f);
+
+    [Header("РЎСЃС‹Р»РєРё")]
+    [SerializeField] private BG3RollUIController uiController;
 
     private Vector3 startPosition;
     private Vector3 currentVelocity;
@@ -58,9 +60,7 @@ public class BG3DiceParentController : MonoBehaviour
         startPosition = transform.position;
 
         if (diceRenderer == null && diceMesh != null)
-        {
             diceRenderer = diceMesh.GetComponent<Renderer>();
-        }
 
         if (diceRenderer != null)
         {
@@ -68,21 +68,23 @@ public class BG3DiceParentController : MonoBehaviour
             if (normalMaterial == null) normalMaterial = targetMaterialInstance;
         }
 
-        // ВАЖНО: При запуске гарантированно отключаем блюр
         SetShaderBlur(0f);
     }
 
     private void OnDisable()
     {
-        // Безопасный сброс размытия, если объект выключился во время броска
         SetShaderBlur(0f);
     }
 
     public void RollDiceWrapper()
     {
         int randomFace = Random.Range(1, 21);
-        Debug.Log("Выпало число: " + randomFace);
-        RollDice(randomFace);
+        Debug.Log("Р’С‹РїР°Р»Рѕ С‡РёСЃР»Рѕ: " + randomFace);
+
+        if (uiController != null)
+            uiController.StartRollSequence(randomFace, 1, 10);
+        else
+            RollDice(randomFace);
     }
 
     public void RollDice(int resultValue)
@@ -92,11 +94,32 @@ public class BG3DiceParentController : MonoBehaviour
         StartCoroutine(AnimateBG3Roll(index));
     }
 
+    public void SnapToFace(int resultValue)
+    {
+        if (isRolling) return;
+        int index = Mathf.Clamp(resultValue - 1, 0, 19);
+
+        Transform targetFace = faceTransforms[index];
+        Vector3 toCameraDir = -targetCamera.transform.forward;
+        Vector3 cameraUpDir = targetCamera.transform.up;
+        Quaternion desiredWorldOrientation = Quaternion.LookRotation(cameraUpDir, toCameraDir);
+        Quaternion finalRotation = desiredWorldOrientation * Quaternion.Inverse(targetFace.localRotation);
+
+        transform.position = startPosition;
+        diceMesh.rotation = finalRotation;
+
+        if (diceRenderer && normalMaterial)
+        {
+            diceRenderer.material = normalMaterial;
+            targetMaterialInstance = diceRenderer.material;
+        }
+
+        SetShaderBlur(0f);
+    }
+
     private IEnumerator AnimateBG3Roll(int targetIndex)
     {
         isRolling = true;
-
-        if (audioSource && spinSound) audioSource.PlayOneShot(spinSound);
 
         if (diceRenderer && blurMaterial)
         {
@@ -106,23 +129,11 @@ public class BG3DiceParentController : MonoBehaviour
 
         SetShaderBlur(maxBlurAmount);
 
-        // =========================================================================
-        // ТОЧНЫЙ РАСЧЕТ ДЛЯ ВАШЕГО ПРЕФАБА (где ось Y пустышек смотрит из грани)
-        // =========================================================================
         Transform targetFace = faceTransforms[targetIndex];
-
-        // 1. Вектор от куба к камере (куда должна смотреть грань)
         Vector3 toCameraDir = -targetCamera.transform.forward;
-
-        // 2. Вектор "верха" экрана камеры
         Vector3 cameraUpDir = targetCamera.transform.up;
-
-        // 3. Создаем базовую ориентацию: Y смотрит на камеру, Z смотрит вверх
         Quaternion desiredWorldOrientation = Quaternion.LookRotation(cameraUpDir, toCameraDir);
-
-        // 4. Поворачиваем меш кубика с учетом локального поворота целевой грани
         Quaternion finalD20Rotation = desiredWorldOrientation * Quaternion.Inverse(targetFace.localRotation);
-        // =========================================================================
 
         Vector2 randomDir2D = Random.insideUnitCircle.normalized;
         currentVelocity = new Vector3(randomDir2D.x, 0f, randomDir2D.y) * initialMoveSpeed;
@@ -142,7 +153,6 @@ public class BG3DiceParentController : MonoBehaviour
             float dt = Time.deltaTime;
             elapsed += dt;
 
-            // --- 1. ПЕРЕМЕЩЕНИЕ ---
             if (elapsed < returnStartTime)
             {
                 transform.position += currentVelocity * dt;
@@ -162,16 +172,13 @@ public class BG3DiceParentController : MonoBehaviour
                 transform.position = Vector3.Lerp(returnStartPos, startPosition, easeMove);
             }
 
-            // --- 2. ВРАЩЕНИЕ И СМАЗЫВАНИЕ ---
             if (elapsed < snapStartTime)
             {
-                // Быстрое вращение — держим блюр активным
                 diceMesh.Rotate(new Vector3(1.2f, 1.5f, 0.8f) * rotationSpeed * dt, Space.Self);
                 SetShaderBlur(maxBlurAmount);
             }
             else
             {
-                // Фаза защелкивания (Snap) — плавно тушим блюр до 0
                 if (!isSnapping)
                 {
                     isSnapping = true;
@@ -186,15 +193,12 @@ public class BG3DiceParentController : MonoBehaviour
 
                 float tRot = Mathf.Clamp01((elapsed - snapStartTime) / snapDuration);
                 diceMesh.rotation = Quaternion.Slerp(snapStartRot, finalD20Rotation, tRot);
-
-                // Убираем блюр к моменту остановки
                 SetShaderBlur(Mathf.Lerp(maxBlurAmount, 0f, tRot));
             }
 
             yield return null;
         }
 
-        // Гарантированный сброс в 0 после завершения корутины
         transform.position = startPosition;
         diceMesh.rotation = finalD20Rotation;
 
@@ -204,11 +208,9 @@ public class BG3DiceParentController : MonoBehaviour
             targetMaterialInstance = diceRenderer.material;
         }
 
-        // ВАЖНО: Жесткий сброс размытия в ноль
         SetShaderBlur(0f);
 
         if (impactParticles) impactParticles.Play();
-        if (audioSource && impactSound) audioSource.PlayOneShot(impactSound);
 
         yield return StartCoroutine(PulseImpact(1.2f, 0.15f));
 
@@ -218,9 +220,7 @@ public class BG3DiceParentController : MonoBehaviour
     private void SetShaderBlur(float amount)
     {
         if (targetMaterialInstance != null && targetMaterialInstance.HasProperty(shaderBlurProperty))
-        {
             targetMaterialInstance.SetFloat(shaderBlurProperty, amount);
-        }
     }
 
     private void CheckXZBoundariesAndBounce()
@@ -234,10 +234,7 @@ public class BG3DiceParentController : MonoBehaviour
         if (pos.z > maxBounds.y) { pos.z = maxBounds.y; currentVelocity.z *= -1f; bounced = true; }
 
         if (bounced)
-        {
             transform.position = pos;
-            if (audioSource && bounceSound) audioSource.PlayOneShot(bounceSound);
-        }
     }
 
     private IEnumerator PulseImpact(float scaleMult, float duration)
