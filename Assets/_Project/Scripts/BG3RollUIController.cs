@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using DG.Tweening; // Подключаем DOTween
 
 public class BG3RollUIController : MonoBehaviour
 {
@@ -36,11 +37,20 @@ public class BG3RollUIController : MonoBehaviour
         ResetUI();
     }
 
+    private void OnDestroy()
+    {
+        // Убиваем все активные твины этого объекта при уничтожении, чтобы не было ошибок
+        DOTween.Kill(this);
+    }
+
     /// <summary>
     /// Сброс интерфейса в начальное состояние перед броском
     /// </summary>
     public void ResetUI()
     {
+        // Останавливаем все запущенные твины UI
+        DOTween.Kill(this);
+
         SetGroupAlpha(rollPromptGroup, 1f, true);
         SetGroupAlpha(modifierCardGroup, 0f, false);
         SetGroupAlpha(resultBannerGroup, 0f, false);
@@ -61,10 +71,22 @@ public class BG3RollUIController : MonoBehaviour
     private IEnumerator RollSequenceCoroutine(int rawDiceResult, int modifierValue, int difficultyClass)
     {
         // 1. Скрываем подсказку "Click dice to roll"
-        yield return StartCoroutine(FadeCanvasGroup(rollPromptGroup, 1f, 0f, 0.2f));
+        if (rollPromptGroup != null)
+        {
+            rollPromptGroup.interactable = false;
+            rollPromptGroup.blocksRaycasts = false;
+            yield return rollPromptGroup.DOFade(0f, 0.2f).SetTarget(this).WaitForCompletion();
+            rollPromptGroup.gameObject.SetActive(false);
+        }
 
         // 2. Включаем плашку модификатора снизу
-        yield return StartCoroutine(FadeCanvasGroup(modifierCardGroup, 0f, 1f, 0.4f));
+        if (modifierCardGroup != null)
+        {
+            modifierCardGroup.gameObject.SetActive(true);
+            yield return modifierCardGroup.DOFade(1f, 0.4f).SetTarget(this).WaitForCompletion();
+            modifierCardGroup.interactable = true;
+            modifierCardGroup.blocksRaycasts = true;
+        }
 
         // 3. Запускаем бросок самого кубика D20
         if (diceController != null)
@@ -80,39 +102,32 @@ public class BG3RollUIController : MonoBehaviour
         }
         else
         {
-            yield return new WaitForSeconds(1.5f); // Пауза-эмуляция, если контроллер куба не привязан
+            yield return new WaitForSeconds(1.5f); // Эмуляция паузы, если кубик не привязан
         }
 
         yield return new WaitForSeconds(0.3f);
 
-        // 4. Анимация полета бонуса (+1) от карточки к кубику
+        // 4. Анимация полета бонуса (+1) от карточки к кубику через DOTween Sequence
         if (modifierValue != 0 && modifierFlyText != null && flyTextStartPoint != null && flyTextEndPoint != null)
         {
             modifierFlyText.text = (modifierValue > 0 ? "+" : "") + modifierValue.ToString();
+            modifierFlyText.transform.position = flyTextStartPoint.position;
+            modifierFlyText.alpha = 0f;
             modifierFlyText.gameObject.SetActive(true);
 
             if (audioSource && modifierFlySound) audioSource.PlayOneShot(modifierFlySound);
 
-            float flyDuration = 0.6f;
-            float elapsed = 0f;
+            // Создаем цепочку анимаций полёта
+            Sequence flySeq = DOTween.Sequence().SetTarget(this);
 
-            RectTransform flyRect = modifierFlyText.rectTransform;
+            // Плавное перемещение к кубику с эффектом ускорения/замедления
+            flySeq.Join(modifierFlyText.transform.DOMove(flyTextEndPoint.position, 0.6f).SetEase(Ease.InOutQuad));
 
-            while (elapsed < flyDuration)
-            {
-                elapsed += Time.deltaTime;
-                float t = elapsed / flyDuration;
-                // Плавное перемещение с эффектом ускорения/замедления
-                float easeT = Mathf.SmoothStep(0f, 1f, t);
+            // Появление в начале и растворение в конце полета
+            flySeq.Join(modifierFlyText.DOFade(1f, 0.2f));
+            flySeq.Insert(0.4f, modifierFlyText.DOFade(0f, 0.2f));
 
-                flyRect.position = Vector3.Lerp(flyTextStartPoint.position, flyTextEndPoint.position, easeT);
-
-                // Прозрачность: появляемся и растворяемся в конце
-                float alpha = Mathf.Sin(t * Mathf.PI);
-                modifierFlyText.alpha = alpha;
-
-                yield return null;
-            }
+            yield return flySeq.WaitForCompletion();
 
             modifierFlyText.gameObject.SetActive(false);
         }
@@ -138,41 +153,33 @@ public class BG3RollUIController : MonoBehaviour
             if (audioSource && failureSound) audioSource.PlayOneShot(failureSound);
         }
 
-        yield return StartCoroutine(FadeCanvasGroup(resultBannerGroup, 0f, 1f, 0.3f));
+        if (resultBannerGroup != null)
+        {
+            resultBannerGroup.gameObject.SetActive(true);
+            yield return resultBannerGroup.DOFade(1f, 0.3f).SetTarget(this).WaitForCompletion();
+            resultBannerGroup.interactable = true;
+            resultBannerGroup.blocksRaycasts = true;
+        }
 
         yield return new WaitForSeconds(0.4f);
 
         // 7. Появление кнопки "Continue"
-        yield return StartCoroutine(FadeCanvasGroup(continueButtonGroup, 0f, 1f, 0.4f));
-    }
-
-    // --- Вспомогательные функции плавной прозрачности ---
-
-    private IEnumerator FadeCanvasGroup(CanvasGroup group, float startAlpha, float endAlpha, float duration)
-    {
-        if (group == null) yield break;
-
-        float elapsed = 0f;
-        group.alpha = startAlpha;
-        group.gameObject.SetActive(true);
-
-        while (elapsed < duration)
+        if (continueButtonGroup != null)
         {
-            elapsed += Time.deltaTime;
-            group.alpha = Mathf.Lerp(startAlpha, endAlpha, elapsed / duration);
-            yield return null;
+            continueButtonGroup.gameObject.SetActive(true);
+            yield return continueButtonGroup.DOFade(1f, 0.4f).SetTarget(this).WaitForCompletion();
+            continueButtonGroup.interactable = true;
+            continueButtonGroup.blocksRaycasts = true;
         }
-
-        group.alpha = endAlpha;
-        group.interactable = endAlpha > 0.5f;
-        group.blocksRaycasts = endAlpha > 0.5f;
     }
 
+    // --- Вспомогательный метод установки параметров CanvasGroup ---
     private void SetGroupAlpha(CanvasGroup group, float alpha, bool interactable)
     {
         if (group == null) return;
         group.alpha = alpha;
         group.interactable = interactable;
         group.blocksRaycasts = interactable;
+        group.gameObject.SetActive(alpha > 0f);
     }
 }

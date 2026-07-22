@@ -1,49 +1,51 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class BG3DiceParentController : MonoBehaviour
 {
     [Header("Иерархия")]
-    public Transform diceMesh;
-    public Renderer diceRenderer;
-    public Transform[] faceTransforms = new Transform[20];
+    [SerializeField] private Transform diceMesh;
+    [SerializeField] private Renderer diceRenderer;
+    [SerializeField] private Transform[] faceTransforms = new Transform[20];
 
     [Header("Камера и Эффекты")]
-    public Camera targetCamera;
-    public ParticleSystem impactParticles;
+    [SerializeField] private Camera targetCamera;
+    [SerializeField] private ParticleSystem impactParticles;
     public AudioSource audioSource;
-    public AudioClip spinSound;
-    public AudioClip bounceSound;
-    public AudioClip impactSound;
+    [SerializeField] private AudioClip spinSound;
+    [SerializeField] private AudioClip bounceSound;
+    [SerializeField] private AudioClip impactSound;
 
     [Header("Настройки Шейдера / Смазывания (Blur)")]
     [Tooltip("Имя свойства размытия в вашем шейдере (если используется Shader Graph)")]
-    public string shaderBlurProperty = "_BlurAmount";
+    [SerializeField] private string shaderBlurProperty = "_BlurAmount";
     [Tooltip("Максимальная сила размытия при быстром вращении")]
-    public float maxBlurAmount = 1.0f;
+    [SerializeField] private float maxBlurAmount = 1.0f;
 
     [Header("Опционально: Альтернативный Материал для вращения")]
     [Tooltip("Если хотите использовать отдельный смазанный материал/текстуру во время вращения")]
-    public Material normalMaterial;
-    public Material blurMaterial;
+    [SerializeField] private Material normalMaterial;
+    [SerializeField] private Material blurMaterial;
 
     [Header("Границы перемещения (Плоскость XZ)")]
-    public Vector2 minBounds = new Vector2(-4f, -4f);
-    public Vector2 maxBounds = new Vector2(4f, 4f);
+    [SerializeField] private Vector2 minBounds = new Vector2(-4f, -4f);
+    [SerializeField] private Vector2 maxBounds = new Vector2(4f, 4f);
 
     [Header("Настройки Броска")]
-    public float rollDuration = 2.0f;
-    public float initialMoveSpeed = 10f;
-    public float rotationSpeed = 1500f;
+    [SerializeField] private float rollDuration = 2.0f;
+    [SerializeField] private float initialMoveSpeed = 10f;
+    [SerializeField] private float rotationSpeed = 1500f;
+    public bool IsRolling => isRolling;
 
     [Tooltip("Время возврата кубика в центр экрана (в секундах)")]
-    public float returnDuration = 0.5f;
+    [SerializeField] private float returnDuration = 0.5f;
     [Tooltip("Время фиксации грани (чем меньше, тем резче защелкивается число)")]
-    public float snapDuration = 0.15f;
+    [SerializeField] private float snapDuration = 0.15f;
 
     [Header("Визуализация Границ (Gizmos)")]
-    public bool showGizmos = true;
-    public Color gizmoColor = new Color(0f, 1f, 0.4f, 0.8f);
+    [SerializeField] private bool showGizmos = true;
+    [SerializeField] private Color gizmoColor = new Color(0f, 1f, 0.4f, 0.8f);
 
     private Vector3 startPosition;
     private Vector3 currentVelocity;
@@ -258,6 +260,12 @@ public class BG3DiceParentController : MonoBehaviour
             yield return null;
         }
         diceMesh.localScale = originalScale;
+    }
+
+    public void Reset()
+    {
+        string currentSceneName = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(currentSceneName);
     }
 
     private void OnDrawGizmosSelected()
