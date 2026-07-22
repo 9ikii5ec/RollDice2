@@ -604,8 +604,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 435734997}
-  - component: {fileID: 435734996}
-  - component: {fileID: 435734998}
+  - component: {fileID: 435734999}
+  - component: {fileID: 435735000}
   m_Layer: 6
   m_Name: Dice Warapper
   m_TagString: Untagged
@@ -613,7 +613,24 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &435734996
+--- !u!4 &435734997
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 435734995}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0.03}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1903956281}
+  - {fileID: 549551283}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &435734999
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -622,11 +639,40 @@ MonoBehaviour:
   m_GameObject: {fileID: 435734995}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc57bdcb67057e341be0bf798a4ac40a, type: 3}
+  m_Script: {fileID: 11500000, guid: da26a83559319cc4a957575f4c92d5ed, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BG3DiceController
-  diceMesh: {fileID: 1903956281}
+  m_EditorClassIdentifier: Assembly-CSharp::DiceVisualController
   diceRenderer: {fileID: 1903956279}
+  normalMaterial: {fileID: 0}
+  blurMaterial: {fileID: 0}
+  shaderBlurProperty: _BlurAmount
+  impactParticles: {fileID: 0}
+  punchStartDelay: 0.4
+  punchScale1: 1.15
+  punchDuration1: 0.4
+  punchMidScale: 1.05
+  punchDelay: 0.2
+  punchScale2: 1.08
+  punchDuration2: 0.3
+  rollPunchScale: 1.15
+  rollPunchDuration: 0.15
+  shineRenderer: {fileID: 549551284}
+  shineDuration: 0.7
+  shineFrom: 3
+  shineTo: -1
+--- !u!114 &435735000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 435734995}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c22f831671c8be418252a54a81830f7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DiceController
+  diceMesh: {fileID: 1903956281}
   faceTransforms:
   - {fileID: 1275235080}
   - {fileID: 1275235079}
@@ -649,137 +695,16 @@ MonoBehaviour:
   - {fileID: 1275235062}
   - {fileID: 1275235061}
   targetCamera: {fileID: 330585545}
-  impactParticles: {fileID: 0}
-  audioSource: {fileID: 435734998}
-  spinSound: {fileID: 8300000, guid: 18ffb3e69fe5e464f8869c8d5d56e415, type: 3}
-  shaderBlurProperty: _BlurAmount
-  maxBlurAmount: 1
-  normalMaterial: {fileID: 0}
-  blurMaterial: {fileID: 0}
   minBounds: {x: -0.1, y: -0.1}
   maxBounds: {x: 0.1, y: 0.1}
   rollDuration: 2
-  initialMoveSpeed: 1
+  initialMoveSpeed: 0.7
   rotationSpeed: 1000
   returnDuration: 0.5
   snapDuration: 0.15
   showGizmos: 1
   gizmoColor: {r: 0, g: 1, b: 0.4, a: 0.8}
-  uiController: {fileID: 1450840208}
---- !u!4 &435734997
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 435734995}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0.03}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1903956281}
-  - {fileID: 549551283}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!82 &435734998
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 435734995}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  visualController: {fileID: 435734999}
 --- !u!1 &482901329
 GameObject:
   m_ObjectHideFlags: 0
@@ -1040,6 +965,7 @@ RectTransform:
   m_Children:
   - {fileID: 1847751828}
   - {fileID: 907574415}
+  - {fileID: 682729788}
   m_Father: {fileID: 1450840207}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1097,6 +1023,7 @@ GameObject:
   - component: {fileID: 599424591}
   - component: {fileID: 599424590}
   - component: {fileID: 599424589}
+  - component: {fileID: 599424592}
   m_Layer: 5
   m_Name: Result
   m_TagString: Untagged
@@ -1235,6 +1162,38 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 599424587}
   m_CullTransparentMesh: 1
+--- !u!114 &599424592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 599424587}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 29cadf45fd857de4e8eb0c0300121a66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResultController
+  bannerGroup: {fileID: 599424589}
+  bannerText: {fileID: 599424590}
+  continueGroup: {fileID: 1970141865}
+  continueButton: {fileID: 907574416}
+  config:
+    introStartDelay: 0.2
+    introBetweenDelay: 0.05
+    modifierSlideOffset: 0.3
+    modifierSlideDuration: 0.35
+    modifierFadeDuration: 0.3
+    rollPromptSlideOffset: 0.3
+    rollPromptSlideDuration: 0.35
+    rollPromptFadeDuration: 0.3
+    rollButtonFadeDuration: 0.3
+    modifierFadeInDuration: 0.4
+    postRollDelay: 0.3
+    flyTextMoveDuration: 0.6
+    bannerFadeDuration: 0.3
+    bannerPostDelay: 0.4
+    continueFadeDuration: 0.4
 --- !u!1 &631619712
 GameObject:
   m_ObjectHideFlags: 0
@@ -1247,6 +1206,7 @@ GameObject:
   - component: {fileID: 631619715}
   - component: {fileID: 631619714}
   - component: {fileID: 631619716}
+  - component: {fileID: 631619717}
   m_Layer: 5
   m_Name: ModifierCard
   m_TagString: Untagged
@@ -1326,6 +1286,39 @@ CanvasGroup:
   m_Interactable: 0
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &631619717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 631619712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d65e3fe9a3dd77e4195523b939df4a15, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ModifierController
+  cardGroup: {fileID: 631619716}
+  cardRect: {fileID: 631619713}
+  flyText: {fileID: 1648470005}
+  flyStartPoint: {fileID: 1616084591}
+  flyEndPoint: {fileID: 992252705}
+  config:
+    introStartDelay: 0.2
+    introBetweenDelay: 0.05
+    modifierSlideOffset: 0.3
+    modifierSlideDuration: 0.35
+    modifierFadeDuration: 0.3
+    rollPromptSlideOffset: 0.3
+    rollPromptSlideDuration: 0.35
+    rollPromptFadeDuration: 0.3
+    rollButtonFadeDuration: 0.3
+    modifierFadeInDuration: 0.4
+    postRollDelay: 0.3
+    flyTextMoveDuration: 0.6
+    bannerFadeDuration: 0.3
+    bannerPostDelay: 0.4
+    continueFadeDuration: 0.4
 --- !u!1 &675392500
 GameObject:
   m_ObjectHideFlags: 0
@@ -1433,16 +1426,16 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 682729787}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalPosition: {x: 0, y: 0, z: -0.000017837654}
+  m_LocalScale: {x: 2.5489001, y: 2.5488994, z: 2.5488994}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1445112498}
-  m_Father: {fileID: 1870076353}
+  m_Father: {fileID: 582187043}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: -63.047028}
+  m_AnchoredPosition: {x: 0, y: -128.33505}
   m_SizeDelta: {x: 124.7276, y: 70.5243}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &682729789
@@ -1489,9 +1482,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 435734996}
-        m_TargetAssemblyTypeName: BG3DiceParentController, Assembly-CSharp
-        m_MethodName: RollDiceWrapper
+      - m_Target: {fileID: 1003780761}
+        m_TargetAssemblyTypeName: RollManager, Assembly-CSharp
+        m_MethodName: StartRoll
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1895,9 +1888,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 435734996}
-        m_TargetAssemblyTypeName: BG3DiceParentController, Assembly-CSharp
-        m_MethodName: Reset
+      - m_Target: {fileID: 1003780761}
+        m_TargetAssemblyTypeName: RollManager, Assembly-CSharp
+        m_MethodName: RestartScene
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1980,6 +1973,58 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 26.438454}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1003780760
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1003780762}
+  - component: {fileID: 1003780761}
+  m_Layer: 0
+  m_Name: RollManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1003780761
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003780760}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 85067e6bc5519fc4ca087285159a5ee6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::RollManager
+  uiController: {fileID: 1450840210}
+  diceController: {fileID: 435735000}
+  modifierController: {fileID: 631619717}
+  resultController: {fileID: 599424592}
+  diceVisual: {fileID: 435734999}
+  audioController: {fileID: 1621415427}
+  modifierValue: 1
+  difficultyClass: 10
+--- !u!4 &1003780762
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1003780760}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.01783, y: 0.07731, z: 0.0503}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1070718296
 GameObject:
   m_ObjectHideFlags: 0
@@ -3160,8 +3205,7 @@ GameObject:
   - component: {fileID: 1450840206}
   - component: {fileID: 1450840205}
   - component: {fileID: 1450840204}
-  - component: {fileID: 1450840208}
-  - component: {fileID: 1450840209}
+  - component: {fileID: 1450840210}
   m_Layer: 5
   m_Name: UI
   m_TagString: Untagged
@@ -3252,7 +3296,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &1450840208
+--- !u!114 &1450840210
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -3261,154 +3305,31 @@ MonoBehaviour:
   m_GameObject: {fileID: 1450840203}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cce39f7b3ca3a1e47a2d1a0fd84e57eb, type: 3}
+  m_Script: {fileID: 11500000, guid: cc5cd210bf8959d459bd0a67964df094, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::BG3RollUIController
-  difficultyClassText: {fileID: 1599406168}
+  m_EditorClassIdentifier: Assembly-CSharp::RollUIController
   rollPromptGroup: {fileID: 1198619565}
   rollButtonGroup: {fileID: 682729792}
-  modifierCardGroup: {fileID: 631619716}
-  modifierFlyText: {fileID: 1648470005}
-  resultBannerGroup: {fileID: 599424589}
-  resultBannerText: {fileID: 599424590}
-  continueButtonGroup: {fileID: 1970141865}
-  continueButton: {fileID: 907574416}
-  flyTextStartPoint: {fileID: 1616084591}
-  flyTextEndPoint: {fileID: 992252705}
+  difficultyClassText: {fileID: 1599406168}
+  rollPromptRect: {fileID: 1198619564}
   config:
-    introStartDelay: 0.3
-    introBetweenDelay: 0
-    modifierSlideOffset: 0.5
-    modifierSlideDuration: 0.4
+    introStartDelay: 0.2
+    introBetweenDelay: 0.05
+    modifierSlideOffset: 0.3
+    modifierSlideDuration: 0.35
     modifierFadeDuration: 0.3
-    rollPromptSlideOffset: 0.5
-    rollPromptSlideDuration: 0.4
+    rollPromptSlideOffset: 0.3
+    rollPromptSlideDuration: 0.35
     rollPromptFadeDuration: 0.3
     rollButtonFadeDuration: 0.3
-    dcTextFadeDuration: 0.3
-    promptFadeOutDuration: 0.2
     modifierFadeInDuration: 0.4
     postRollDelay: 0.3
     flyTextMoveDuration: 0.6
-    flyTextFadeInDuration: 0.2
-    flyTextFadeOutStart: 0.4
-    flyTextFadeOutDuration: 0.2
     bannerFadeDuration: 0.3
     bannerPostDelay: 0.4
     continueFadeDuration: 0.4
-    dicePunchStartDelay: 0.1
-    dicePunchScale1: 1.3
-    dicePunchDuration1: 0.4
-    dicePunchMidScale: 1.05
-    dicePunchDelay: 0.2
-    dicePunchScale2: 1.1
-    dicePunchDuration2: 0.3
-    diceShineDuration: 0.7
-  audioSource: {fileID: 1450840209}
-  spinSound: {fileID: 8300000, guid: 18ffb3e69fe5e464f8869c8d5d56e415, type: 3}
-  modifierAddSound: {fileID: 8300000, guid: d212693772c73ae4b9784f2f7bf16659, type: 3}
-  successSound: {fileID: 8300000, guid: 03430452b68e3d8418a069fef3456cdc, type: 3}
-  successParticles: {fileID: 0}
-  diceController: {fileID: 435734996}
-  diceTransform: {fileID: 435734997}
-  shineRenderer: {fileID: 549551284}
---- !u!82 &1450840209
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1450840203}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 0}
-  m_PlayOnAwake: 1
-  m_Volume: 1
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 1
-  MaxDistance: 500
-  Pan2D: 0
-  rolloffMode: 0
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
+  modifierController: {fileID: 631619717}
+  diceVisual: {fileID: 435734999}
 --- !u!1 &1599406166
 GameObject:
   m_ObjectHideFlags: 0
@@ -3581,6 +3502,152 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -184.88908}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1621415425
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1621415428}
+  - component: {fileID: 1621415427}
+  - component: {fileID: 1621415426}
+  m_Layer: 0
+  m_Name: AudioController
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!82 &1621415426
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621415425}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 0}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 500
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+--- !u!114 &1621415427
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621415425}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6e26237e2fe7f3f42b247704e8c41865, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioController
+  audioSource: {fileID: 1621415426}
+  spinSound: {fileID: 8300000, guid: 18ffb3e69fe5e464f8869c8d5d56e415, type: 3}
+  modifierAddSound: {fileID: 8300000, guid: d212693772c73ae4b9784f2f7bf16659, type: 3}
+  successSound: {fileID: 8300000, guid: 03430452b68e3d8418a069fef3456cdc, type: 3}
+--- !u!4 &1621415428
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1621415425}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.01783, y: 0.07731, z: 0.0503}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1648470004
 GameObject:
   m_ObjectHideFlags: 0
@@ -3788,7 +3855,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.64705884}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -3838,11 +3905,10 @@ RectTransform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1870076352}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: -0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1.3658237, y: 1.3658237, z: 1.3658237}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 682729788}
   - {fileID: 814875376}
   - {fileID: 1198619564}
   - {fileID: 599424588}
@@ -3916,9 +3982,9 @@ MonoBehaviour:
   Clicked:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 435734996}
-        m_TargetAssemblyTypeName: BG3DiceParentController, Assembly-CSharp
-        m_MethodName: RollDiceWrapper
+      - m_Target: {fileID: 1003780761}
+        m_TargetAssemblyTypeName: RollManager, Assembly-CSharp
+        m_MethodName: StartRoll
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4185,3 +4251,5 @@ SceneRoots:
   - {fileID: 435734997}
   - {fileID: 1450840207}
   - {fileID: 675392503}
+  - {fileID: 1003780762}
+  - {fileID: 1621415428}

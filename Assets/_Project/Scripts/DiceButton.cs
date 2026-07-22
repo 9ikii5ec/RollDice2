@@ -32,4 +32,9 @@ public class DiceButton : MonoBehaviour
         }
     }
 
+    private void OnMouseDown()
+    {
+        Clicked?.Invoke();
+    }
+
 }
