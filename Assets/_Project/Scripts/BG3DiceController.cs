@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class BG3DiceParentController : MonoBehaviour
 {
@@ -14,7 +15,6 @@ public class BG3DiceParentController : MonoBehaviour
     [SerializeField] private ParticleSystem impactParticles;
     [SerializeField] private AudioSource audioSource;
     [SerializeField] private AudioClip spinSound;
-    [SerializeField] private AudioClip impactSound;
 
     [Header("Настройки размытия (Blur)")]
     [Tooltip("Имя свойства шейдера для размытия (обычно задаётся в Shader Graph)")]
@@ -79,8 +79,6 @@ public class BG3DiceParentController : MonoBehaviour
     public void RollDiceWrapper()
     {
         int randomFace = Random.Range(1, 21);
-        Debug.Log("Выпало число: " + randomFace);
-
         if (uiController != null)
             uiController.StartRollSequence(randomFace, 1, 10);
         else
@@ -90,6 +88,10 @@ public class BG3DiceParentController : MonoBehaviour
     public void RollDice(int resultValue)
     {
         if (isRolling) return;
+
+        transform.DOKill();
+        transform.localScale = Vector3.one;
+
         int index = Mathf.Clamp(resultValue - 1, 0, 19);
         StartCoroutine(AnimateBG3Roll(index));
     }

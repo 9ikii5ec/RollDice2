@@ -24,11 +24,11 @@ public class BG3RollUIController : MonoBehaviour
     [Header("Config")]
     [SerializeField] private RollUIConfig config = new RollUIConfig();
 
-    [Header("Audio (Optional)")]
+    [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
-    [SerializeField] private AudioClip modifierFlySound;
+    [SerializeField] private AudioClip spinSound;
+    [SerializeField] private AudioClip modifierAddSound;
     [SerializeField] private AudioClip successSound;
-    [SerializeField] private AudioClip failureSound;
 
     [Header("Particles (Optional)")]
     [SerializeField] private ParticleSystem successParticles;
@@ -220,6 +220,8 @@ public class BG3RollUIController : MonoBehaviour
         // 3. Бросок кубика
         if (diceController != null)
         {
+            if (audioSource != null && spinSound != null)
+                audioSource.PlayOneShot(spinSound);
             diceController.RollDice(rawDiceResult);
             while (diceController.IsRolling)
                 yield return null;
@@ -238,6 +240,9 @@ public class BG3RollUIController : MonoBehaviour
             modifierFlyText.transform.position = flyTextStartPoint.position;
             modifierFlyText.alpha = 1f;
             modifierFlyText.transform.localScale = Vector3.one;
+
+            if (audioSource != null && modifierAddSound != null)
+                audioSource.PlayOneShot(modifierAddSound);
 
             Sequence flySeq = DOTween.Sequence().SetTarget(this);
             flySeq.Append(modifierFlyText.transform.DOScale(1.3f, 0.2f).SetEase(Ease.OutBack));
@@ -270,6 +275,7 @@ public class BG3RollUIController : MonoBehaviour
         if (resultBannerText != null)
         {
             resultBannerText.text = isSuccess ? "SUCCESS" : "FAILURE";
+            audioSource.PlayOneShot(successSound);
             resultBannerText.color = isSuccess ? new Color(0.9f, 0.8f, 0.4f) : new Color(0.9f, 0.3f, 0.3f);
         }
 
