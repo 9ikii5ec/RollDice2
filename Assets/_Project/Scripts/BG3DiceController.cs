@@ -5,6 +5,7 @@ public class BG3DiceParentController : MonoBehaviour
 {
     [Header("Иерархия")]
     public Transform diceMesh;
+    public Renderer diceRenderer;
     public Transform[] faceTransforms = new Transform[20];
 
     [Header("Камера и Эффекты")]
@@ -14,6 +15,17 @@ public class BG3DiceParentController : MonoBehaviour
     public AudioClip spinSound;
     public AudioClip bounceSound;
     public AudioClip impactSound;
+
+    [Header("Настройки Шейдера / Смазывания (Blur)")]
+    [Tooltip("Имя свойства размытия в вашем шейдере (если используется Shader Graph)")]
+    public string shaderBlurProperty = "_BlurAmount";
+    [Tooltip("Максимальная сила размытия при быстром вращении")]
+    public float maxBlurAmount = 1.0f;
+
+    [Header("Опционально: Альтернативный Материал для вращения")]
+    [Tooltip("Если хотите использовать отдельный смазанный материал/текстуру во время вращения")]
+    public Material normalMaterial;
+    public Material blurMaterial;
 
     [Header("Границы перемещения (Плоскость XZ)")]
     public Vector2 minBounds = new Vector2(-4f, -4f);
@@ -26,7 +38,7 @@ public class BG3DiceParentController : MonoBehaviour
 
     [Tooltip("Время возврата кубика в центр экрана (в секундах)")]
     public float returnDuration = 0.5f;
-    [Tooltip("Время финального доворота грани. Чем меньше, тем резче защелкивается число.")]
+    [Tooltip("Время фиксации грани (чем меньше, тем резче защелкивается число)")]
     public float snapDuration = 0.15f;
 
     [Header("Визуализация Границ (Gizmos)")]
@@ -36,11 +48,32 @@ public class BG3DiceParentController : MonoBehaviour
     private Vector3 startPosition;
     private Vector3 currentVelocity;
     private bool isRolling = false;
+    private Material targetMaterialInstance;
 
     private void Start()
     {
         if (targetCamera == null) targetCamera = Camera.main;
         startPosition = transform.position;
+
+        if (diceRenderer == null && diceMesh != null)
+        {
+            diceRenderer = diceMesh.GetComponent<Renderer>();
+        }
+
+        if (diceRenderer != null)
+        {
+            targetMaterialInstance = diceRenderer.material;
+            if (normalMaterial == null) normalMaterial = targetMaterialInstance;
+        }
+
+        // ВАЖНО: При запуске гарантированно отключаем блюр
+        SetShaderBlur(0f);
+    }
+
+    private void OnDisable()
+    {
+        // Безопасный сброс размытия, если объект выключился во время броска
+        SetShaderBlur(0f);
     }
 
     public void RollDiceWrapper()
@@ -63,17 +96,36 @@ public class BG3DiceParentController : MonoBehaviour
 
         if (audioSource && spinSound) audioSource.PlayOneShot(spinSound);
 
-        // Расчет итогового поворота под вашу развертку осей (Y - наружу)
-        Quaternion targetFaceWorldRot = Quaternion.LookRotation(targetCamera.transform.up, -targetCamera.transform.forward);
-        Quaternion finalD20Rotation = targetFaceWorldRot * Quaternion.Inverse(faceTransforms[targetIndex].localRotation);
+        if (diceRenderer && blurMaterial)
+        {
+            diceRenderer.material = blurMaterial;
+            targetMaterialInstance = diceRenderer.material;
+        }
 
-        // Направление вылета
+        SetShaderBlur(maxBlurAmount);
+
+        // =========================================================================
+        // ТОЧНЫЙ РАСЧЕТ ДЛЯ ВАШЕГО ПРЕФАБА (где ось Y пустышек смотрит из грани)
+        // =========================================================================
+        Transform targetFace = faceTransforms[targetIndex];
+
+        // 1. Вектор от куба к камере (куда должна смотреть грань)
+        Vector3 toCameraDir = -targetCamera.transform.forward;
+
+        // 2. Вектор "верха" экрана камеры
+        Vector3 cameraUpDir = targetCamera.transform.up;
+
+        // 3. Создаем базовую ориентацию: Y смотрит на камеру, Z смотрит вверх
+        Quaternion desiredWorldOrientation = Quaternion.LookRotation(cameraUpDir, toCameraDir);
+
+        // 4. Поворачиваем меш кубика с учетом локального поворота целевой грани
+        Quaternion finalD20Rotation = desiredWorldOrientation * Quaternion.Inverse(targetFace.localRotation);
+        // =========================================================================
+
         Vector2 randomDir2D = Random.insideUnitCircle.normalized;
         currentVelocity = new Vector3(randomDir2D.x, 0f, randomDir2D.y) * initialMoveSpeed;
 
         float elapsed = 0f;
-
-        // Тайминги начала разных фаз
         float returnStartTime = rollDuration - returnDuration;
         float snapStartTime = rollDuration - snapDuration;
 
@@ -88,7 +140,7 @@ public class BG3DiceParentController : MonoBehaviour
             float dt = Time.deltaTime;
             elapsed += dt;
 
-            // --- 1. ЛОГИКА ПЕРЕМЕЩЕНИЯ ---
+            // --- 1. ПЕРЕМЕЩЕНИЕ ---
             if (elapsed < returnStartTime)
             {
                 transform.position += currentVelocity * dt;
@@ -104,43 +156,69 @@ public class BG3DiceParentController : MonoBehaviour
                 }
 
                 float tMove = Mathf.Clamp01((elapsed - returnStartTime) / returnDuration);
-                float easeMove = 1f - Mathf.Pow(1f - tMove, 3f); // Кубическое затухание скорости к центру
+                float easeMove = 1f - Mathf.Pow(1f - tMove, 3f);
                 transform.position = Vector3.Lerp(returnStartPos, startPosition, easeMove);
             }
 
-            // --- 2. ЛОГИКА ВРАЩЕНИЯ ---
+            // --- 2. ВРАЩЕНИЕ И СМАЗЫВАНИЕ ---
             if (elapsed < snapStartTime)
             {
-                // Постоянное, БЕЗ ЗАТУХАНИЯ вращение по всем трем осям (эффект кувыркания)
+                // Быстрое вращение — держим блюр активным
                 diceMesh.Rotate(new Vector3(1.2f, 1.5f, 0.8f) * rotationSpeed * dt, Space.Self);
+                SetShaderBlur(maxBlurAmount);
             }
             else
             {
-                // Резкий, почти мгновенный доворот на нужную грань
+                // Фаза защелкивания (Snap) — плавно тушим блюр до 0
                 if (!isSnapping)
                 {
                     isSnapping = true;
                     snapStartRot = diceMesh.rotation;
+
+                    if (diceRenderer && normalMaterial && blurMaterial)
+                    {
+                        diceRenderer.material = normalMaterial;
+                        targetMaterialInstance = diceRenderer.material;
+                    }
                 }
 
                 float tRot = Mathf.Clamp01((elapsed - snapStartTime) / snapDuration);
                 diceMesh.rotation = Quaternion.Slerp(snapStartRot, finalD20Rotation, tRot);
+
+                // Убираем блюр к моменту остановки
+                SetShaderBlur(Mathf.Lerp(maxBlurAmount, 0f, tRot));
             }
 
             yield return null;
         }
 
-        // Гарантированная фиксация в конце
+        // Гарантированный сброс в 0 после завершения корутины
         transform.position = startPosition;
         diceMesh.rotation = finalD20Rotation;
 
-        // Эффект удара
+        if (diceRenderer && normalMaterial)
+        {
+            diceRenderer.material = normalMaterial;
+            targetMaterialInstance = diceRenderer.material;
+        }
+
+        // ВАЖНО: Жесткий сброс размытия в ноль
+        SetShaderBlur(0f);
+
         if (impactParticles) impactParticles.Play();
         if (audioSource && impactSound) audioSource.PlayOneShot(impactSound);
 
         yield return StartCoroutine(PulseImpact(1.2f, 0.15f));
 
         isRolling = false;
+    }
+
+    private void SetShaderBlur(float amount)
+    {
+        if (targetMaterialInstance != null && targetMaterialInstance.HasProperty(shaderBlurProperty))
+        {
+            targetMaterialInstance.SetFloat(shaderBlurProperty, amount);
+        }
     }
 
     private void CheckXZBoundariesAndBounce()
